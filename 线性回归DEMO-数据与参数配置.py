@@ -78,5 +78,5 @@ for epoch in range(epochs):
         print('epoch:{},loss:{}'.format(epoch, loss.item()))  # 每 50 个周期打印一次当前的周期数和损失值
 
 # =============测试模型预测结果=============
-predicted = model(torch.from_numpy(x_train).requires_grad_()).data.numpy()
+predicted = model(torch.from_numpy(x_train)).detach().numpy()
 print(predicted)
