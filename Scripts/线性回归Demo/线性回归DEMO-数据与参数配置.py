@@ -1,18 +1,27 @@
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<使用GPU训练>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-"""只需要把数据和模型传入cuda里面就可以了"""
 import torch
-import torch.nn as nn
 import numpy as np
+import torch.nn as nn
 
 x_values = [i for i in range(12)]  # 生成一个从 0 到 10 的整数列表
+# print(x_values)
+
 x_train = np.array(x_values, dtype=np.float32)  # 将使用 NumPy 库将 x_values 列表转换为一个 NumPy 数组，并指定数组的数据类型为 float32
+# print(x_train)
+
 x_train = x_train.reshape(-1, 1)  # 行数自己计算，列数固定为2
+# reshape（c,d）:数组重组，并且以c行d列排列。（-1，表示自己计算）
+# print(x_train)
+b = x_train.shape  # 用于获取调整后数组的形状
+# print(b)
 
 y_values = [2 * i + 1 for i in x_values]  # 生成一个从 0 到 10 的整数列表
 y_train = np.array(y_values, dtype=np.float32)
 y_train = y_train.reshape(-1, 1)
+c = y_train.shape
+print(c)
 
 
+# =============线性回归模型=============
 class LinearRegressionModel(nn.Module):  # 定义用到了那些层
 
     def __init__(self, input_dim, output_dim):  # 它接收两个参数：input_dim（输入维度）和 output_dim（输出维度）
@@ -27,10 +36,16 @@ class LinearRegressionModel(nn.Module):  # 定义用到了那些层
 # 模型既只有一个输入特征，也只有一个输出值。这是标准的单变量线性回归设置。
 input_dim = 1  # 模型只有一个输入特征
 output_dim = 1  # 模型只有一个输出值
-model = LinearRegressionModel(input_dim, output_dim)  # 利用这些维度参数创建了线性回归模型的一个实例
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model.to(device)  # 将模型传给cuda
+model = LinearRegressionModel(input_dim, output_dim)  # 利用这些维度参数创建了线性回归模型的一个实例
+print(model)
+'''(linear): Linear(in_features=1, out_features=1, bias=True)：
+
+这部分描述了模型中的一个线性层（self.linear）。
+Linear 表明这是一个线性层。
+in_features=1 表示输入特征的数量是 1。这对应于您在模型初始化时设置的 input_dim。
+out_features=1 表示输出特征的数量也是 1。这对应于您设置的 output_dim。
+bias=True 表示这个层包含一个偏置项。'''
 
 # =============指定好参数和损失函数=============
 epochs = 1000  # 模型将遍历训练数据 1000 次
@@ -42,8 +57,8 @@ critersion = nn.MSELoss()  # 函数调用均方误差（MSE）
 for epoch in range(epochs):
     # epoch += 1
     # 注意要转格式为tensor,将 NumPy 数组转换为 PyTorch 张量，这是 PyTorch 模型处理的数据格式
-    inputs = torch.from_numpy(x_train).to(device)  # 数据传给cuda
-    labels = torch.from_numpy(y_train).to(device)  # 数据传给cuda
+    inputs = torch.from_numpy(x_train)
+    labels = torch.from_numpy(y_train)
 
     # 梯度每次清零
     optimizer.zero_grad()  # 这是必要的，因为默认情况下，梯度是累积的
@@ -67,5 +82,7 @@ predicted = model(torch.from_numpy(x_train)).detach().numpy()
 print(predicted)
 
 # =============模型的保存与读取=============
-torch.save(model.state_dict(), '../model.pkl')
-model.load_state_dict(torch.load('../model.pkl'))
+torch.save(model.state_dict(), '../../Data/model.pkl')
+model.load_state_dict(torch.load('../../Data/model.pkl'))
+
+
