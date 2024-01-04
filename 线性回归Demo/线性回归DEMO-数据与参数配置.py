@@ -80,3 +80,9 @@ for epoch in range(epochs):
 # =============测试模型预测结果=============
 predicted = model(torch.from_numpy(x_train)).detach().numpy()
 print(predicted)
+
+# =============模型的保存与读取=============
+torch.save(model.state_dict(), '../model.pkl')
+model.load_state_dict(torch.load('../model.pkl'))
+
+
