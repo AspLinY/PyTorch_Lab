@@ -88,7 +88,7 @@ plt.plot(true_data['date'], true_data['actual'], '-b', label='actul')
 
 # 预测值
 plt.plot(predictions_data['date'], predictions_data['prediction'], 'ro', label='prediction')
-plt.xticks(rotation='60')
+plt.xticks(rotation=60)
 plt.legend()
 
 #  图名
