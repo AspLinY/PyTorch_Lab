@@ -92,6 +92,7 @@ plt.xticks(rotation=60)
 plt.legend()
 
 #  图名
-plt.xlabel('日期')
-plt.ylabel('最高温度(F)')
-plt.title('实际值与预测值')
+plt.xlabel('date')
+plt.ylabel('Max tempereture(F)')
+plt.title('Actual and Prediction')
+plt.show()
