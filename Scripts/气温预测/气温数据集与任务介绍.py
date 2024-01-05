@@ -30,7 +30,7 @@ features = pd.get_dummies(features)  # 如果features中有任何非数值型（
 print(features.head(5))
 
 # 标签
-labels = np.array(features['actual'])  # 提取名为'actual'的列，并将其转换为NumPy数组。这个数组labels被用作标签或目标变量，即您的模型需要预测的值。
+labels = np.array(features['actual'])  # [y]:提取名为'actual'的列，并将其转换为NumPy数组。这个数组labels被用作标签或目标变量，即您的模型需要预测的值。
 print(labels)
 
 # 在特征中去标签
@@ -47,7 +47,62 @@ features = np.array(features)  # 将features DataFrame转换为NumPy数组
 print(features)
 
 input_features = preprocessing.StandardScaler().fit_transform(
-    features)  # 特征标准化 确保所有特征都在相同的尺度上，这样一个特征就不会由于其数值范围大([1,2,3],[1000,1001,1002])而比其他特征对模型产生更大的影响
+    features)  # [x]特征标准化 确保所有特征都在相同的尺度上，这样一个特征就不会由于其数值范围大([1,2,3],[1000,1001,1002])而比其他特征对模型产生更大的影响
 print(input_features)
 
 # ====================构建网络模型====================
+x = torch.tensor(input_features, dtype=torch.float)  # 标准化后的特征，作为网络的输入
+y = torch.tensor(labels, dtype=torch.float)  # 目标标签，是网络应该学习预测的值
+
+# 权重参数初始化
+# -----第一层（隐藏层）的权重和偏置
+weights = torch.randn((14, 128), dtype=torch.float, requires_grad=True)  # 输入层14个神经元 隐藏层128个神经元
+biases = torch.randn(128, dtype=torch.float, requires_grad=True)  # 因为隐藏层有128个神经元 为隐藏层中的每个神经元提供一个偏置值
+# -----第二层（输出层）的权重和偏置
+weights2 = torch.randn((128, 1), dtype=torch.float, requires_grad=True)  # 128对应于隐藏层的128个神经元，1对应于输出层的单个神经元
+biases2 = torch.randn(1, dtype=torch.float, requires_grad=True)  # 为输出层的单个神经元提供一个偏置值
+'''torch.float 是在PyTorch框架中定义的一个数据类型，它通常用于指定张量的数据类型。'''
+
+learning_rate = 0.001
+losses = []
+
+for i in range(1000):
+    # ==================前向传播==================
+    # 计算隐藏层
+    hidden = x.mm(weights) + biases
+    # 加入激活函数
+    hidden = torch.relu(hidden)  # 增加网络的非线性能力
+    # 预测结果
+    predictions = hidden.mm(weights2) + biases2  # y^
+    '''在每一层，输出 y 通常是通过对上一层的输出 x 进行加权求和再加上偏置，然后通过激活函数进行转换得到的。即 y = f(wx + b) f是激活函数'''
+    '''隐藏层：几乎总是需要激活函数。'''
+    '''输出层是否需要激活函数取决于特定的任务:
+        1、回归任务（如预测价格或温度），通常不使用激活函数'''
+    '''输入层：输入层通常不使用激活函数。'''
+    # ===========================================
+
+    # 通过计算损失
+    loss = torch.mean((predictions - y) ** 2)  # Mean Squared Error, MSE 损失函数
+    losses.append(loss.data.numpy())
+
+    # 打印
+    if i % 100 == 0:
+        print('loss:', loss)
+
+    # 后向传播 -- 自动计算损失函数（loss）关于模型参数（通常是权重和偏置）的梯度（grad）
+    loss.backward()
+    '''梯度的作用
+        指示了损失函数相对于每个参数的变化率，告诉我们如何调整参数以减少损失
+        例如，如果某个权重的梯度是正数，意味着增加这个权重会增加损失，因此我们在更新时应该减小这个权重。'''
+
+    # 更新参数 新参数=旧参数−(学习率×该层梯度)
+    weights.data.add_(- learning_rate * weights.grad.data)
+    biases.data.add_(- learning_rate * biases.grad.data)
+    weights2.data.add_(- learning_rate * weights2.grad.data)
+    biases2.data.add_(- learning_rate * biases2.grad.data)
+
+    # 每次迭代记得要清空
+    weights.grad.data.zero_()
+    biases.grad.data.zero_()
+    weights2.grad.data.zero_()
+    biases2.grad.data.zero_()
